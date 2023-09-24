@@ -94,7 +94,7 @@ public class UserRepositoryImp implements UserRepository {
             for (User userMap : usersRepositoryMap.values()) {
                 if (!userMap.getEmail().equals(user.getEmail())) {
                     flag = false;
-                } else if (userMap.getEmail().equals(user.getEmail()) && userMap.getId() == userId) {
+                } else if (userMap.getEmail().equals(user.getEmail()) && userMap.getId().equals(userId)) {
                     flag = false;
                 } else {
                     flag = true;

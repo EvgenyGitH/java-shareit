@@ -75,7 +75,7 @@ public class ItemServiceImp implements ItemService {
 
     @Override
     public void checkOwnerOfItem(Long itemId, Long userId, String expMessage) {
-        if (itemRepository.getItemById(itemId).getOwner().getId() != userId) {
+        if (!itemRepository.getItemById(itemId).getOwner().getId().equals(userId)) {
             throw new NotCorrectDataException(expMessage);
         }
     }

@@ -32,7 +32,7 @@ public class ItemRepositoryImp implements ItemRepository {
     @Override
     public List<Item> getAllItemsOfUser(Long userId) {
         return itemRepositoryMap.values().stream()
-                .filter(item -> item.getOwner().getId() == userId)
+                .filter(item -> item.getOwner().getId().equals(userId))
                 .collect(Collectors.toList());
     }
 
