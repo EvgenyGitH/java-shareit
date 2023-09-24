@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 @Data
 public class ItemRepositoryImp implements ItemRepository {
     private Long nextId = 0L;
-    //  private final ItemMapper itemMapper;
     private final Map<Long, Item> itemRepositoryMap = new HashMap<>();
 
     @Override

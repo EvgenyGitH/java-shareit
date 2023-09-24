@@ -65,7 +65,7 @@ public class ItemServiceImp implements ItemService {
 
     @Override
     public List<ItemDto> searchItem(String text) {
-        if (text == null || text.isBlank()) {
+        if (text.isBlank()) {
             return Collections.emptyList();
         }
         return itemRepository.searchItem(text).stream()

@@ -1,4 +1,4 @@
-package ru.practicum.shareit.booking;
+package ru.practicum.shareit.booking.model;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -21,7 +21,6 @@ public class Booking {
     LocalDateTime endTime;
     Item item;
     User booker;
-    String status;  // WAITING - APPROVED - REJECTED - CANCELED
-
+    Status status;  // WAITING - APPROVED - REJECTED - CANCELED
 
 }
