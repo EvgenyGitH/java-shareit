@@ -4,7 +4,6 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.exception.DuplicateException;
 import ru.practicum.shareit.exception.UserNotFoundException;
-import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
@@ -57,7 +56,7 @@ public class UserRepositoryImp implements UserRepository {
         if (usersRepositoryMap.containsKey(userId)) {
             flag = true;
         }
-        if (flag == false){
+        if (flag == false) {
             throw new UserNotFoundException("User not found");
         }
         return flag;
@@ -66,47 +65,45 @@ public class UserRepositoryImp implements UserRepository {
     @Override
     public boolean isDuplicateEmail(User user) {
         boolean flag = true;
-        if(usersRepositoryMap.isEmpty()){
-            flag =false;
-        }
-        else{
+        if (usersRepositoryMap.isEmpty()) {
+            flag = false;
+        } else {
             for (User userMap : usersRepositoryMap.values()) {
                 if (!userMap.getEmail().equals(user.getEmail())) {
                     flag = false;
-                }else{
+                } else {
                     flag = true;
                     break;
                 }
             }
 
         }
-        if(flag == true){
+        if (flag == true) {
             throw new DuplicateException("e-mail is duplicated");
         }
         return flag;
     }
 
     @Override
-    public boolean checkEmailByUserId (Long userId, User user){
+    public boolean checkEmailByUserId(Long userId, User user) {
         boolean flag = true;
-        if(usersRepositoryMap.isEmpty()){
-            flag =false;
-        }
-        else{
+        if (usersRepositoryMap.isEmpty()) {
+            flag = false;
+        } else {
             isUserExist(userId);
             for (User userMap : usersRepositoryMap.values()) {
-                if(!userMap.getEmail().equals(user.getEmail())){
+                if (!userMap.getEmail().equals(user.getEmail())) {
                     flag = false;
-                }else if (userMap.getEmail().equals(user.getEmail()) && userMap.getId() == userId) {
+                } else if (userMap.getEmail().equals(user.getEmail()) && userMap.getId() == userId) {
                     flag = false;
-                }else{
+                } else {
                     flag = true;
                     break;
                 }
             }
 
         }
-        if(flag == true){
+        if (flag == true) {
             throw new DuplicateException("e-mail is used by another user");
         }
         return flag;

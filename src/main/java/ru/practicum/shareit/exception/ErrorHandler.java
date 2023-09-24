@@ -11,28 +11,28 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handlerUserNotFoundException(UserNotFoundException exception){
+    public ErrorResponse handlerUserNotFoundException(UserNotFoundException exception) {
         log.error(exception.getMessage());
         return new ErrorResponse(exception.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handlerItemNotFoundException(ItemNotFoundException exception){
+    public ErrorResponse handlerItemNotFoundException(ItemNotFoundException exception) {
         log.error(exception.getMessage());
         return new ErrorResponse(exception.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handlerNotCorrectDataException(NotCorrectDataException exception){
+    public ErrorResponse handlerNotCorrectDataException(NotCorrectDataException exception) {
         log.error(exception.getMessage());
         return new ErrorResponse(exception.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handlerDuplicateException(DuplicateException exception){
+    public ErrorResponse handlerDuplicateException(DuplicateException exception) {
         log.error(exception.getMessage());
         return new ErrorResponse(exception.getMessage());
     }

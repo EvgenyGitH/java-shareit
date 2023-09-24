@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.service;
 
-import org.springframework.web.bind.annotation.RequestParam;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 
@@ -20,7 +19,8 @@ public interface ItemService {
 
     List<ItemDto> searchItem(String text);
 
-    void checkOwnerOfItem (Long itemId, Long userId, String expMessage);
+    void checkOwnerOfItem(Long itemId, Long userId, String expMessage);
+
     Item updateItemFields(Item updateItem);
 
 }

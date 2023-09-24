@@ -8,7 +8,6 @@ import ru.practicum.shareit.user.model.User;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-
 @Builder
 @Data
 public class Item {
