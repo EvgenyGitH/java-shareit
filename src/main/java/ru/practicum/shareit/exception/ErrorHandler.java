@@ -25,7 +25,35 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handlerBookingNotFoundException(BookingNotFoundException exception) {
+        log.error(exception.getMessage());
+        return new ErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handlerBookingNotAvailableException(BookingNotAvailableException exception) {
+        log.error(exception.getMessage());
+        return new ErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIllegalOperationException(IllegalOperationException exception) {
+        log.error(exception.getMessage());
+        return new ErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handlerNotCorrectDataException(NotCorrectDataException exception) {
+        log.error(exception.getMessage());
+        return new ErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handlerItemStatusException(ItemStatusException exception) {
         log.error(exception.getMessage());
         return new ErrorResponse(exception.getMessage());
     }

@@ -2,12 +2,15 @@ package ru.practicum.shareit.user.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.DuplicateException;
+import ru.practicum.shareit.exception.UserNotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,13 +23,13 @@ public class UserServiceImp implements UserService {
     @Override
     public UserDto create(UserDto userDto) {
         User user = userMapper.makeUser(userDto);
-        userRepository.isDuplicateEmail(user);
-        return userMapper.makeUserDto(userRepository.create(user));
+        user = userRepository.save(user);
+        return userMapper.makeUserDto(user);
     }
 
     @Override
     public List<UserDto> getAllUsers() {
-        return userRepository.getAllUsers()
+        return userRepository.findAll()
                 .stream()
                 .map(user -> userMapper.makeUserDto(user))
                 .collect(Collectors.toList());
@@ -34,40 +37,43 @@ public class UserServiceImp implements UserService {
 
     @Override
     public UserDto getUserById(Long userId) {
-        userRepository.isUserExist(userId);
-        return userMapper.makeUserDto(userRepository.getUserById(userId));
+        // userRepository.isUserExist(userId);
+        return userMapper.makeUserDto(
+                userRepository.findById(userId).orElseThrow(() ->
+                        new UserNotFoundException("User ID: " + userId + " not found")));
     }
 
     @Override
     public UserDto update(Long userId, UserDto userDto) {
-        if (userRepository.isUserExist(userId)) {
-            User userMap = userRepository.getUserById(userId);
-           /* if (userDto.getEmail()!=null && userDto.getEmail().equals(user.getEmail())){
-                throw new DuplicateException("The email entered is the same as the previous one");
-            }*/
-
-            User updateUser = userMapper.makeUser(userDto);
-            userRepository.checkEmailByUserId(userId, updateUser);
-
-            if (updateUser.getName() == null && updateUser.getEmail() != null) {
-                userRepository.checkEmailByUserId(userId, updateUser);
-                updateUser.setName(userMap.getName());
-            }
-            if (updateUser.getEmail() == null) {
-                updateUser.setEmail(userMap.getEmail());
-            }
-
-            updateUser.setId(userId);
-            userRepository.update(userId, updateUser);
+        User userFromBd = userRepository.findById(userId).orElseThrow(() ->
+                new UserNotFoundException("User ID: " + userId + " not found"));
+        User updateUser = userMapper.makeUser(userDto);
+        updateUser.setId(userId);
+        if (updateUser.getName() == null && updateUser.getEmail() != null) {
+            checkEmailByUserId(updateUser);
+            updateUser.setName(userFromBd.getName());
         }
-        return getUserById(userId);
+        if (updateUser.getEmail() == null) {
+            updateUser.setEmail(userFromBd.getEmail());
+        }
+        userRepository.save(updateUser);
+        return userMapper.makeUserDto(updateUser);
     }
 
     @Override
-    public UserDto deleteUserById(Long userId) {
-        userRepository.isUserExist(userId);
-        return userMapper.makeUserDto(userRepository.deleteUserById(userId));
+    public void deleteUserById(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException("User ID: " + userId + " not found");
+        }
+        userRepository.deleteById(userId);
     }
 
+    @Override
+    public void checkEmailByUserId(User user) {
+        Optional<User> userByEmail = userRepository.findByEmailContainingIgnoreCase(user.getEmail());
+        if (userByEmail.isPresent() && !userByEmail.get().getId().equals(user.getId())) {
+            throw new DuplicateException("e-mail is duplicated");
+        }
+    }
 
 }

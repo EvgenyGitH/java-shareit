@@ -1,26 +1,48 @@
 package ru.practicum.shareit.booking.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-bookings.
- */
 
+@Entity
+@Table(name = "bookings")
 @Component
-@Getter
-@Setter
+@Builder
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Booking {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    LocalDateTime starTime;
-    LocalDateTime endTime;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id")
+    @NotNull
     Item item;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @NotNull
     User booker;
+
+    @Column(name = "start_time")
+    @NotNull
+    LocalDateTime start;
+    @Column(name = "end_time")
+    @NotNull
+    LocalDateTime end;
+
+    @Enumerated(EnumType.STRING)
     Status status;  // WAITING - APPROVED - REJECTED - CANCELED
 
 }

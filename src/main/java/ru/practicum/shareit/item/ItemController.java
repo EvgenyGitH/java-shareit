@@ -3,7 +3,9 @@ package ru.practicum.shareit.item;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoWithBookingsAndComments;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
@@ -24,13 +26,14 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getItemById(@PathVariable Long itemId) {
+    public ItemDtoWithBookingsAndComments getItemById(@RequestHeader("X-Sharer-User-Id") Long userId,
+                               @PathVariable Long itemId) {
         log.info("Get Item by ID {}", itemId);
-        return itemService.getItemById(itemId);
+        return itemService.getItemById(itemId, userId);
     }
 
     @GetMapping
-    public List<ItemDto> getAllItemsOfUser(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemDtoWithBookingsAndComments> getAllItemsOfUser(@RequestHeader("X-Sharer-User-Id") Long userId) {
         log.info("Get all Items of Owner");
         return itemService.getAllItemsOfUser(userId);
     }
@@ -44,10 +47,10 @@ public class ItemController {
     }
 
     @DeleteMapping("/{itemId}")
-    public ItemDto deleteItemById(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public void deleteItemById(@RequestHeader("X-Sharer-User-Id") Long userId,
                                   @PathVariable Long itemId) {
         log.info("Delete Item by ID {}", itemId);
-        return itemService.deleteItemById(itemId, userId);
+        itemService.deleteItemById(itemId, userId);
     }
 
     @GetMapping("/search")  //@GetMapping("/search?text={text}")
@@ -56,4 +59,10 @@ public class ItemController {
         return itemService.searchItem(text);
     }
 
+    @PostMapping("/{itemId}/comment")
+    public CommentDto postComment (@RequestHeader("X-Sharer-User-Id") Long userId,
+                                @PathVariable Long itemId,
+                                @Valid @RequestBody CommentDto commentDto){
+        return itemService.postComment(itemId, userId, commentDto);
+    }
 }

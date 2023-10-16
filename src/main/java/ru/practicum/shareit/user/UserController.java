@@ -9,9 +9,7 @@ import ru.practicum.shareit.user.service.UserService;
 import javax.validation.Valid;
 import java.util.List;
 
-/**
- * TODO Sprint add-controllers.
- */
+
 @RestController
 @AllArgsConstructor
 @Slf4j
@@ -21,7 +19,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public UserDto create(@Valid @RequestBody UserDto userDto) {
+    public UserDto create(@RequestBody @Valid UserDto userDto) {
         log.info("Create new User");
         return userService.create(userDto);
     }
@@ -47,10 +45,10 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public UserDto deleteUserById(//@RequestHeader("X-ShareIt-User-Id") Long id,
-                                  @PathVariable Long userId) {
+    public void deleteUserById(//@RequestHeader("X-ShareIt-User-Id") Long id,
+                               @PathVariable Long userId) {
         log.info("Delete User by id {}", userId);
-        return userService.deleteUserById(userId);
+        userService.deleteUserById(userId);
     }
 
 }
