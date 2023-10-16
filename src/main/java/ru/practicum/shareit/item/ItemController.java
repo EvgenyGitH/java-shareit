@@ -27,7 +27,7 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     public ItemDtoWithBookingsAndComments getItemById(@RequestHeader("X-Sharer-User-Id") Long userId,
-                               @PathVariable Long itemId) {
+                                                      @PathVariable Long itemId) {
         log.info("Get Item by ID {}", itemId);
         return itemService.getItemById(itemId, userId);
     }
@@ -48,7 +48,7 @@ public class ItemController {
 
     @DeleteMapping("/{itemId}")
     public void deleteItemById(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                  @PathVariable Long itemId) {
+                               @PathVariable Long itemId) {
         log.info("Delete Item by ID {}", itemId);
         itemService.deleteItemById(itemId, userId);
     }
@@ -60,9 +60,9 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public CommentDto postComment (@RequestHeader("X-Sharer-User-Id") Long userId,
-                                @PathVariable Long itemId,
-                                @Valid @RequestBody CommentDto commentDto){
+    public CommentDto postComment(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                  @PathVariable Long itemId,
+                                  @Valid @RequestBody CommentDto commentDto) {
         return itemService.postComment(itemId, userId, commentDto);
     }
 }
