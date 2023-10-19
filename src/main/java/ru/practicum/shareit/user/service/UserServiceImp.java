@@ -9,6 +9,7 @@ import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ public class UserServiceImp implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    @Transactional
     @Override
     public UserDto create(UserDto userDto) {
         User user = userMapper.makeUser(userDto);
@@ -43,6 +45,7 @@ public class UserServiceImp implements UserService {
                         new UserNotFoundException("User ID: " + userId + " not found")));
     }
 
+    @Transactional
     @Override
     public UserDto update(Long userId, UserDto userDto) {
         User userFromBd = userRepository.findById(userId).orElseThrow(() ->
@@ -60,6 +63,7 @@ public class UserServiceImp implements UserService {
         return userMapper.makeUserDto(updateUser);
     }
 
+    @Transactional
     @Override
     public void deleteUserById(Long userId) {
         if (!userRepository.existsById(userId)) {

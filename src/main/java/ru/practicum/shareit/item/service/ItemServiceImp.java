@@ -23,6 +23,7 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,6 +42,8 @@ public class ItemServiceImp implements ItemService {
     private final BookingMapper bookingMapper;
     private final CommentMapper commentMapper;
 
+    @Transactional
+    @Override
     public ItemDto createItem(ItemDto itemDto, Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User ID: " + userId + " not found");
@@ -91,6 +94,7 @@ public class ItemServiceImp implements ItemService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public ItemDto updateItem(Long itemId, ItemDto itemDto, Long userId) {
         if (!itemRepository.existsById(itemId)) {
@@ -106,6 +110,7 @@ public class ItemServiceImp implements ItemService {
         return itemMapper.makeToDto(itemRepository.save(updateItem));
     }
 
+    @Transactional
     @Override
     public void deleteItemById(Long itemId, Long userId) {
         if (!itemRepository.existsById(itemId)) {
@@ -153,6 +158,7 @@ public class ItemServiceImp implements ItemService {
         return updateItem;
     }
 
+    @Transactional
     @Override
     public CommentDto postComment(Long itemId, Long userId, CommentDto commentDto) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User ID: " + userId + " not found"));

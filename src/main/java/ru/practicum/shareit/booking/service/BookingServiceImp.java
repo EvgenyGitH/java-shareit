@@ -15,6 +15,7 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ public class BookingServiceImp implements BookingService {
     private final ItemService itemService;
     private final BookingMapper bookingMapper;
 
+    @Transactional
     @Override
     public BookingDto createBooking(BookingDto bookingDto, Long userId) {
         Booking booking = bookingMapper.makeToBooking(bookingDto);
@@ -47,6 +49,7 @@ public class BookingServiceImp implements BookingService {
         return bookingMapper.makeToDto(booking);
     }
 
+    @Transactional
     @Override
     public BookingDto approveBooking(Long bookingId, Long userId, Boolean approved) {
         Booking bookingFromBd = bookingRepository.findById(bookingId).orElseThrow(() ->
@@ -80,17 +83,11 @@ public class BookingServiceImp implements BookingService {
     @Override
     public List<BookingDto> getAllBookingsByUserId(Long userId, String state) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User ID: " + userId + " not found"));
-        State stateCase;
-        try {
-            stateCase = State.valueOf(state);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalOperationException("Unknown state: " + state);
-        }
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookingList;
-        switch (stateCase) {
+        switch (checkState(state)) {
             case CURRENT:
-                bookingList = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartAsc(userId, now, now);
+                bookingList = bookingRepository.findAllCurrentBookingsByBookerId(userId, now, now);
                 break;
             case PAST:
                 bookingList = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now);
@@ -115,17 +112,11 @@ public class BookingServiceImp implements BookingService {
     @Override
     public List<BookingDto> getAllBookingsByOwnerId(Long userId, String state) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User ID: " + userId + " not found"));
-        State stateCase;
-        try {
-            stateCase = State.valueOf(state);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalOperationException("Unknown state: " + state);
-        }
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookingList;
-        switch (stateCase) {
+        switch (checkState(state)) {
             case CURRENT:
-                bookingList = bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now);
+                bookingList = bookingRepository.findAllByItemOwnerId(userId, now, now);
                 break;
             case PAST:
                 bookingList = bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, now);
@@ -145,6 +136,16 @@ public class BookingServiceImp implements BookingService {
         return bookingList.stream()
                 .map(booking -> bookingMapper.makeToDto(booking))
                 .collect(Collectors.toList());
+    }
+
+    public State checkState(String state) {
+        State stateCase;
+        try {
+            stateCase = State.valueOf(state);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalOperationException("Unknown state: " + state);
+        }
+        return stateCase;
     }
 
 }
