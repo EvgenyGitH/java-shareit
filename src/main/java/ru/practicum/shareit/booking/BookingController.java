@@ -5,8 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.exception.PaginationParamException;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -40,16 +43,26 @@ public class BookingController {
 
     @GetMapping
     public List<BookingDto> getAllBookingsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                   @RequestParam(defaultValue = "ALL") String state) {
+                                                   @RequestParam(defaultValue = "ALL") String state,
+                                                   @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                                   @RequestParam(defaultValue = "10") @Positive Integer size) {
+        if (from < 0 || size <= 0) {
+            throw new PaginationParamException("Should be: From >= 0 and size > 0");
+        }
         log.info("Get all bookings by User ID {}, state: {}", userId, state);
-        return bookingService.getAllBookingsByUserId(userId, state);
+        return bookingService.getAllBookingsByUserId(userId, state, from, size);
     }
 
     @GetMapping("/owner")
     public List<BookingDto> getAllBookingsByOwnerId(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                    @RequestParam(defaultValue = "ALL") String state) {
+                                                    @RequestParam(defaultValue = "ALL") String state,
+                                                    @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                                    @RequestParam(defaultValue = "10") @Positive Integer size) {
+        if (from < 0 || size <= 0) {
+            throw new PaginationParamException("Should be: From >= 0 and size > 0");
+        }
         log.info("Get all bookings by Owner ID {}, state: {}", userId, state);
-        return bookingService.getAllBookingsByOwnerId(userId, state);
+        return bookingService.getAllBookingsByOwnerId(userId, state, from, size);
     }
 
 

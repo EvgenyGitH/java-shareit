@@ -18,6 +18,7 @@ public class BookingMapperImp implements BookingMapper {
     public BookingDto makeToDto(Booking booking) {
         return BookingDto.builder()
                 .id(booking.getId())
+                .itemId(booking.getItem().getId())
                 .item(itemMapper.makeToDto(booking.getItem()))
                 .booker(userMapper.makeUserDto(booking.getBooker()))
                 .start(booking.getStart())

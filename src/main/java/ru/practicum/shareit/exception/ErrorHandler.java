@@ -34,6 +34,13 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handlerRequestNotFoundException(RequestNotFoundException exception) {
+        log.error(exception.getMessage());
+        return new ErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handlerBookingNotAvailableException(BookingNotAvailableException exception) {
         log.error(exception.getMessage());
@@ -43,6 +50,13 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleIllegalOperationException(IllegalOperationException exception) {
+        log.error(exception.getMessage());
+        return new ErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handlePaginationParamException(PaginationParamException exception) {
         log.error(exception.getMessage());
         return new ErrorResponse(exception.getMessage());
     }

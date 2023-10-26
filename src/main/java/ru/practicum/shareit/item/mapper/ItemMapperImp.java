@@ -14,13 +14,15 @@ public class ItemMapperImp implements ItemMapper {
 
     @Override
     public ItemDto makeToDto(Item item) {
-        return ItemDto.builder()
-                .id(item.getId())
-                .name(item.getName())
-                .description(item.getDescription())
-                .available(item.getAvailable())
-                //       .request(item.getRequest())
-                .build();
+        ItemDto itemDto = new ItemDto();
+        itemDto.setId(item.getId());
+        itemDto.setName(item.getName());
+        itemDto.setDescription(item.getDescription());
+        itemDto.setAvailable(item.getAvailable());
+        if (item.getRequest() != null) {
+            itemDto.setRequestId(item.getRequest().getId());
+        }
+        return itemDto;
     }
 
     @Override
@@ -30,7 +32,7 @@ public class ItemMapperImp implements ItemMapper {
                 .description(itemDto.getDescription())
                 .available(itemDto.getAvailable())
                 .name(itemDto.getName())
-                //      .request(itemDto.getRequest())
+                //    .request(itemDto.getRequest())
                 .build();
     }
 

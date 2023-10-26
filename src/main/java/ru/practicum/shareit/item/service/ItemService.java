@@ -13,13 +13,13 @@ public interface ItemService {
 
     ItemDtoWithBookingsAndComments getItemById(Long itemId, Long userId);
 
-    List<ItemDtoWithBookingsAndComments> getAllItemsOfUser(Long userId);
+    List<ItemDtoWithBookingsAndComments> getAllItemsOfUser(Long userId, Integer from, Integer size);
 
     ItemDto updateItem(Long itemId, ItemDto itemDto, Long userId);
 
     void deleteItemById(Long itemId, Long userId);
 
-    List<ItemDto> searchItem(String text);
+    List<ItemDto> searchItem(String text, Integer from, Integer size);
 
     void checkOwnerOfItem(Long itemId, Long userId, String expMessage);
 
