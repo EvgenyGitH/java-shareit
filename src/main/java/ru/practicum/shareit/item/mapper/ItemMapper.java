@@ -20,6 +20,7 @@ public class ItemMapper {
         }
         return itemDto;
     }
+
     public static Item makeToItem(ItemDto itemDto) {
         return Item.builder()
                 .name(itemDto.getName())
@@ -29,6 +30,7 @@ public class ItemMapper {
                 //    .request(itemDto.getRequest())
                 .build();
     }
+
     public static ItemDtoWithBookingsAndComments makeToItemDtoWithBookingsAndComments(Item item, List<CommentDto> commentsDtos, BookingDtoShort lastBooking, BookingDtoShort nextBooking) {
         ItemDtoWithBookingsAndComments itemDto = new ItemDtoWithBookingsAndComments();
         if (item.getId() != null) {

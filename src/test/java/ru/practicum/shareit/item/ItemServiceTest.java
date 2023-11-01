@@ -66,8 +66,8 @@ public class ItemServiceTest {
         item = createItemTest();
         itemDto = createItemDtoTest();
         user = createUserTest();
-        commentOne = CreateCommentOne();
-        commentDtoOne = CreateCommentDtoOne();
+        commentOne = createCommentOne();
+        commentDtoOne = createCommentDtoOne();
         booking = createBooking();
         itemDtoWithBAndC = createItemDtoWithBookingsAndComments();
 
@@ -234,7 +234,7 @@ public class ItemServiceTest {
         return itemDto;
     }
 
-    private Comment CreateCommentOne() {
+    private Comment createCommentOne() {
         Comment comment = new Comment();
         comment.setId(1L);
         comment.setText("CommentTestOne");
@@ -245,7 +245,7 @@ public class ItemServiceTest {
         return comment;
     }
 
-    private CommentDto CreateCommentDtoOne() {
+    private CommentDto createCommentDtoOne() {
         CommentDto comment = new CommentDto();
         comment.setId(1L);
         comment.setText("CommentTestOne");
@@ -274,7 +274,7 @@ public class ItemServiceTest {
         itemDtoWithBAndC.setAvailable(true);
         itemDtoWithBAndC.setLastBooking(null);
         itemDtoWithBAndC.setNextBooking(null);
-        itemDtoWithBAndC.setComments(new ArrayList<>()); //List<CommentDto> comments;
+        itemDtoWithBAndC.setComments(new ArrayList<>());
         return itemDtoWithBAndC;
     }
 
