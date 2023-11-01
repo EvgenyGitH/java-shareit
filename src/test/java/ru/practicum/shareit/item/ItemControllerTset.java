@@ -12,7 +12,6 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBookingsAndComments;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.user.dto.UserDto;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -35,12 +34,9 @@ public class ItemControllerTset {
     MockMvc mvc;
     @Autowired
     ObjectMapper mapper;
-
     @MockBean
     ItemService itemService;
-
     ItemDto itemDto;
-  //  UserDto userDto;
 
     @BeforeEach
     void beforeEach() {
@@ -68,7 +64,6 @@ public class ItemControllerTset {
     @Test
     public void getItemById() throws Exception {
         ItemDtoWithBookingsAndComments itemDtoWithBandC = createItemDtoWithBookingsAndComments();
-
         when(itemService.getItemById(anyLong(), anyLong()))
                 .thenReturn(itemDtoWithBandC);
 
@@ -85,7 +80,6 @@ public class ItemControllerTset {
     @Test
     public void getAllItemsOfUser() throws Exception {
         ItemDtoWithBookingsAndComments itemDtoWithBandC = createItemDtoWithBookingsAndComments();
-
         List<ItemDtoWithBookingsAndComments> itemsList = List.of(itemDtoWithBandC);
         when(itemService.getAllItemsOfUser(anyLong(), anyInt(), anyInt()))
                 .thenReturn(itemsList);
@@ -121,12 +115,11 @@ public class ItemControllerTset {
         verify(itemService).updateItem(1L, itemDto, 1L);
     }
 
-
     @Test
     public void deleteItemById() throws Exception {
         doNothing().when(itemService).deleteItemById(anyLong(), anyLong());
         mvc.perform(delete("/items/1")
-                .header("X-Sharer-User-Id", 1))
+                        .header("X-Sharer-User-Id", 1))
                 .andExpect(status().isOk());
         verify(itemService, times(1)).deleteItemById(anyLong(), anyLong());
     }
@@ -136,9 +129,8 @@ public class ItemControllerTset {
         List<ItemDto> itemDtoList = List.of(itemDto);
         when(itemService.searchItem(anyString(), anyInt(), anyInt()))
                 .thenReturn(itemDtoList);
-
         mvc.perform(get("/items/search")
-                     //   .header("X-Sharer-User-Id", 1)
+                        //   .header("X-Sharer-User-Id", 1)
                         .param("text", "test")
                         .param("from", "0")
                         .param("size", "10"))
@@ -148,7 +140,7 @@ public class ItemControllerTset {
                 .andExpect(jsonPath("$[0].name", is(itemDto.getName())))
                 .andExpect(jsonPath("$[0].description", is(itemDto.getDescription())))
                 .andExpect(jsonPath("$[0].available", is(itemDto.getAvailable())));
-        verify(itemService).searchItem("test",  0, 10);
+        verify(itemService).searchItem("test", 0, 10);
     }
 
     @Test
@@ -156,7 +148,6 @@ public class ItemControllerTset {
         CommentDto commentDto = createTestComment();
         when(itemService.postComment(anyLong(), anyLong(), any()))
                 .thenReturn(commentDto);
-
         mvc.perform(post("/items/1/comment")
                         .header("X-Sharer-User-Id", 1)
                         .content(mapper.writeValueAsString(commentDto))
@@ -172,19 +163,14 @@ public class ItemControllerTset {
         verify(itemService).postComment(1L, 1L, commentDto);
     }
 
-
-    //----- вспомогательные----
     private ItemDto createTestItemDto() {
         ItemDto itemDto = new ItemDto();
         itemDto.setId(1L);
         itemDto.setName("Test item");
         itemDto.setDescription("Test item description");
         itemDto.setAvailable(true);
-        //   itemDto.setOwner(new User(1L, "UserNameTest", "userTest@yamail.com"));
-
         return itemDto;
     }
-
 
     private ItemDtoWithBookingsAndComments createItemDtoWithBookingsAndComments() {
         ItemDtoWithBookingsAndComments itemDtoWithBookingsAndComments = new ItemDtoWithBookingsAndComments();
@@ -195,46 +181,16 @@ public class ItemControllerTset {
         itemDtoWithBookingsAndComments.setLastBooking(null);
         itemDtoWithBookingsAndComments.setNextBooking(null);
         itemDtoWithBookingsAndComments.setComments(new ArrayList<>());
-
         return itemDtoWithBookingsAndComments;
     }
-
-/*
-    private User createTestUser1() {
-        User user = new User();
-        user.setId(1L);
-        user.setName("UserNameTest");
-        user.setEmail("userTest@yamail.com");
-        return user;
-    }
-
-    private User createTestUser2() {
-        User user = new User();
-        user.setId(2L);
-        user.setName("UserNameTest2");
-        user.setEmail("userTest2@yamail.com");
-        return user;
-    }*/
 
     private CommentDto createTestComment() {
         CommentDto commentDto = new CommentDto();
         commentDto.setId(1L);
-        //    commentDto.setItem(getTestItem());
         commentDto.setText("CommentTest");
         commentDto.setAuthorName("UserNameTest");
         commentDto.setCreated(LocalDateTime.of(2023, 10, 10, 12, 0));
         return commentDto;
     }
-/*
-    private Booking createTestBooking() {
-        Booking booking = new Booking();
-        booking.setId(1L);
-        booking.setStart(LocalDateTime.of(2023, 10, 25, 9, 0));
-        booking.setEnd(LocalDateTime.of(2023, 10, 25, 10, 0));
-        booking.setItem(getTestItem());
-        booking.setBooker(getTestUser2());
-        booking.setStatus(BookingStatus.APPROVED);
 
-        return booking;
-    }*/
 }

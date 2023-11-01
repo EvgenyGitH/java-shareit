@@ -40,23 +40,21 @@ public class ItemServiceImp implements ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final ItemRequestRepository itemRequestRepository;
-    private final ItemMapper itemMapper;
-    private final BookingMapper bookingMapper;
-    private final CommentMapper commentMapper;
+
 
     @Transactional
     @Override
     public ItemDto createItem(ItemDto itemDto, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new UserNotFoundException("User ID: " + userId + " not found"));
-        Item item = itemMapper.makeToItem(itemDto);
+        Item item = ItemMapper.makeToItem(itemDto);
         item.setOwner(user);
         if (itemDto.getRequestId() != null) {
             ItemRequest request = itemRequestRepository.findById(itemDto.getRequestId()).orElseThrow(() ->
                     new RequestNotFoundException("Request ID: " + userId + " not found"));
             item.setRequest(request);
         }
-        return itemMapper.makeToDto(itemRepository.save(item));
+        return ItemMapper.makeToDto(itemRepository.save(item));
     }
 
     @Override
@@ -65,14 +63,14 @@ public class ItemServiceImp implements ItemService {
         List<Comment> commentsList = commentRepository.findAllByItemId(itemId);
         List<Booking> bookingList = bookingRepository.findAllByItemId(itemId);
         if (!item.getOwner().getId().equals(userId)) {
-            return itemMapper.makeToItemDtoWithBookingsAndComments(item, commentsList.stream()
-                            .map(comment -> commentMapper.makeToDto(comment)).collect(Collectors.toList()),
+            return ItemMapper.makeToItemDtoWithBookingsAndComments(item, commentsList.stream()
+                            .map(comment -> CommentMapper.makeToDto(comment)).collect(Collectors.toList()),
                     null, null);
         } else {
-            return itemMapper.makeToItemDtoWithBookingsAndComments(
+            return ItemMapper.makeToItemDtoWithBookingsAndComments(
                     item,
                     commentsList.isEmpty() ? new ArrayList<CommentDto>() : commentsList.stream()
-                            .map(comment -> commentMapper.makeToDto(comment)).collect(Collectors.toList()),
+                            .map(comment -> CommentMapper.makeToDto(comment)).collect(Collectors.toList()),
                     getLastBooking(bookingList, item.getId()),
                     getNextBooking(bookingList, item.getId()));
         }
@@ -89,11 +87,11 @@ public class ItemServiceImp implements ItemService {
         List<Comment> commentsList = commentRepository.findAllByItemIdIn(itemIdList);
 
         return itemList.stream()
-                .map(item -> itemMapper.makeToItemDtoWithBookingsAndComments(
+                .map(item -> ItemMapper.makeToItemDtoWithBookingsAndComments(
                         item,
                         commentsList.isEmpty() ? new ArrayList<CommentDto>() : commentsList.stream()
                                 .filter(comment -> comment.getItem().getId().equals(item.getId()))
-                                .map(comment -> commentMapper.makeToDto(comment))
+                                .map(comment -> CommentMapper.makeToDto(comment))
                                 .collect(Collectors.toList()),
                         getLastBooking(bookingList, item.getId()),
                         getNextBooking(bookingList, item.getId())))
@@ -110,11 +108,11 @@ public class ItemServiceImp implements ItemService {
         User userFromBd = userRepository.findById(userId).orElseThrow(() ->
                 new UserNotFoundException("User ID: " + userId + " not found"));
         checkOwnerOfItem(itemId, userId, "You can update only yours item");
-        Item updateItem = itemMapper.makeToItem(itemDto);
+        Item updateItem = ItemMapper.makeToItem(itemDto);
         updateItem.setId(itemId);
         updateItem.setOwner(userFromBd);
         updateItem = updateItemFields(updateItem);
-        return itemMapper.makeToDto(itemRepository.save(updateItem));
+        return ItemMapper.makeToDto(itemRepository.save(updateItem));
     }
 
     @Transactional
@@ -134,7 +132,7 @@ public class ItemServiceImp implements ItemService {
             return Collections.emptyList();
         }
         return itemRepository.searchItem(text, pageable).stream()
-                .map(item -> itemMapper.makeToDto(item))
+                .map(item -> ItemMapper.makeToDto(item))
                 .collect(Collectors.toList());
     }
 
@@ -174,12 +172,12 @@ public class ItemServiceImp implements ItemService {
         if (bookingRepository.findByItemIdAndBookerIdAndStatusAndEndBefore(itemId, userId, Status.APPROVED, LocalDateTime.now()).isEmpty()) {
             throw new IllegalOperationException("Only user who has completed booking can leave a comment");
         }
-        Comment comment = commentMapper.makeToComment(commentDto);
+        Comment comment = CommentMapper.makeToComment(commentDto);
         comment.setItem(item);
         comment.setAuthor(user);
         comment.setCreated(LocalDateTime.now());
         comment = commentRepository.save(comment);
-        return commentMapper.makeToDto(comment);
+        return CommentMapper.makeToDto(comment);
     }
 
 
@@ -196,7 +194,7 @@ public class ItemServiceImp implements ItemService {
             if (lastbooking == null) {
                 return null;
             } else {
-                return bookingMapper.makeToDtoShort(lastbooking);
+                return BookingMapper.makeToDtoShort(lastbooking);
             }
         }
     }
@@ -214,7 +212,7 @@ public class ItemServiceImp implements ItemService {
             if (nextbooking == null) {
                 return null;
             } else {
-                return bookingMapper.makeToDtoShort(nextbooking);
+                return BookingMapper.makeToDtoShort(nextbooking);
             }
         }
     }

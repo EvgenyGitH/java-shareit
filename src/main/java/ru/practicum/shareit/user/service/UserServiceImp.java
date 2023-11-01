@@ -17,30 +17,28 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class UserServiceImp implements UserService {
-
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
 
     @Transactional
     @Override
     public UserDto create(UserDto userDto) {
-        User user = userMapper.makeUser(userDto);
+        User user = UserMapper.makeUser(userDto);
         user = userRepository.save(user);
-        return userMapper.makeUserDto(user);
+        return UserMapper.makeUserDto(user);
     }
 
     @Override
     public List<UserDto> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(user -> userMapper.makeUserDto(user))
+                .map(user -> UserMapper.makeUserDto(user))
                 .collect(Collectors.toList());
     }
 
     @Override
     public UserDto getUserById(Long userId) {
         // userRepository.isUserExist(userId);
-        return userMapper.makeUserDto(
+        return UserMapper.makeUserDto(
                 userRepository.findById(userId).orElseThrow(() ->
                         new UserNotFoundException("User ID: " + userId + " not found")));
     }
@@ -50,7 +48,7 @@ public class UserServiceImp implements UserService {
     public UserDto update(Long userId, UserDto userDto) {
         User userFromBd = userRepository.findById(userId).orElseThrow(() ->
                 new UserNotFoundException("User ID: " + userId + " not found"));
-        User updateUser = userMapper.makeUser(userDto);
+        User updateUser = UserMapper.makeUser(userDto);
         updateUser.setId(userId);
         if (updateUser.getName() == null && updateUser.getEmail() != null) {
             checkEmailByUserId(updateUser);
@@ -60,7 +58,7 @@ public class UserServiceImp implements UserService {
             updateUser.setEmail(userFromBd.getEmail());
         }
         userRepository.save(updateUser);
-        return userMapper.makeUserDto(updateUser);
+        return UserMapper.makeUserDto(updateUser);
     }
 
     @Transactional

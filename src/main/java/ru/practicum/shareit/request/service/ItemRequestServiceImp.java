@@ -26,32 +26,26 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-
 public class ItemRequestServiceImp implements ItemRequestService {
     private final ItemRequestRepository itemRequestRepository;
-    private final ItemRequestMapper itemRequestMapper;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
-    private final ItemMapper itemMapper;
 
-
-    public ItemRequestServiceImp(ItemRequestRepository itemRequestRepository, ItemRequestMapper itemRequestMapper, UserRepository userRepository, ItemRepository itemRepository, ItemMapper itemMapper) {
+    public ItemRequestServiceImp(ItemRequestRepository itemRequestRepository, UserRepository userRepository, ItemRepository itemRepository) {
         this.itemRequestRepository = itemRequestRepository;
-        this.itemRequestMapper = itemRequestMapper;
         this.userRepository = userRepository;
         this.itemRepository = itemRepository;
-        this.itemMapper = itemMapper;
     }
 
     @Override
     public ItemRequestDto createPost(ItemRequestDto itemRequestDto, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new UserNotFoundException("User ID: " + userId + " not found"));
-        ItemRequest itemRequest = itemRequestMapper.makeToItemRequest(itemRequestDto);
+        ItemRequest itemRequest = ItemRequestMapper.makeToItemRequest(itemRequestDto);
         itemRequest.setRequestor(user);
         itemRequest.setCreated(LocalDateTime.now());
         itemRequest = itemRequestRepository.save(itemRequest);
-        return itemRequestMapper.makeToDto(itemRequest);
+        return ItemRequestMapper.makeToDto(itemRequest);
     }
 
     @Override
@@ -74,12 +68,12 @@ public class ItemRequestServiceImp implements ItemRequestService {
             itemDtoToRequest = new ArrayList<>();
         } else {
             itemDtoToRequest = itemsToRequest.stream()
-                    .map(item -> itemMapper.makeToDto(item))
+                    .map(item -> ItemMapper.makeToDto(item))
                     .collect(Collectors.toList());
         }
 
         return itemRequestList.stream()
-                .map(itemRequest -> itemRequestMapper.makeToItemRequestWithItem(itemRequest, itemDtoToRequest))
+                .map(itemRequest -> ItemRequestMapper.makeToItemRequestWithItem(itemRequest, itemDtoToRequest))
                 .sorted(Comparator.comparing(ItemRequestDtoWithItem::getCreated))
                 .collect(Collectors.toList());
     }
@@ -96,11 +90,11 @@ public class ItemRequestServiceImp implements ItemRequestService {
         List<Long> listRequestId = itemRequestMap.keySet().stream().collect(Collectors.toList());
 
         Map<Long, List<ItemDto>> itemDtoToRequest = itemRepository.findAllByRequestIdIn(listRequestId).stream()
-                .map(itemMapper::makeToDto)
+                .map(ItemMapper::makeToDto)
                 .collect(Collectors.groupingBy(ItemDto::getRequestId));
 
         return itemRequestMap.values().stream()
-                .map(itemRequest -> itemRequestMapper.makeToItemRequestWithItem(itemRequest,
+                .map(itemRequest -> ItemRequestMapper.makeToItemRequestWithItem(itemRequest,
                         itemDtoToRequest.getOrDefault(itemRequest.getId(), Collections.emptyList())))
                 .collect(Collectors.toList());
     }
@@ -120,9 +114,9 @@ public class ItemRequestServiceImp implements ItemRequestService {
             itemDtoToRequest = new ArrayList<>();
         } else {
             itemDtoToRequest = itemsToRequest.stream()
-                    .map(item -> itemMapper.makeToDto(item)).collect(Collectors.toList());
+                    .map(item -> ItemMapper.makeToDto(item)).collect(Collectors.toList());
         }
 
-        return itemRequestMapper.makeToItemRequestWithItem(itemRequest, itemDtoToRequest);
+        return ItemRequestMapper.makeToItemRequestWithItem(itemRequest, itemDtoToRequest);
     }
 }

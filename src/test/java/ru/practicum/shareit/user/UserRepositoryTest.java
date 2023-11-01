@@ -1,25 +1,19 @@
 package ru.practicum.shareit.user;
 
 
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.util.List;
 import java.util.Optional;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -58,12 +52,11 @@ public class UserRepositoryTest {
     @Test
     public void findByEmailContainingIgnoreCase() {
         em.persist(user);
-        Optional<User>result = userRepository.findByEmailContainingIgnoreCase("userTest@yamail.com");
+        Optional<User> result = userRepository.findByEmailContainingIgnoreCase("userTest@yamail.com");
         assertNotNull(user);
         assertEquals(result.get(), user);
 
     }
-
 
 
     private User createUserTest() {

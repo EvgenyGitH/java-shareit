@@ -29,12 +29,11 @@ public class BookingServiceImp implements BookingService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ItemService itemService;
-    private final BookingMapper bookingMapper;
 
     @Transactional
     @Override
     public BookingDto createBooking(BookingDto bookingDto, Long userId) {
-        Booking booking = bookingMapper.makeToBooking(bookingDto);
+        Booking booking = BookingMapper.makeToBooking(bookingDto);
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User ID: " + userId + " not found"));
         Item item = itemRepository.findById(bookingDto.getItemId()).orElseThrow(() -> new ItemNotFoundException("Item ID: " + bookingDto.getItemId() + " not found"));
         if (item.getOwner().getId().equals(userId)) {
@@ -48,7 +47,7 @@ public class BookingServiceImp implements BookingService {
         booking.setItem(item);
         booking.setStatus(Status.WAITING);
         booking = bookingRepository.save(booking);
-        return bookingMapper.makeToDto(booking);
+        return BookingMapper.makeToDto(booking);
     }
 
     @Transactional
@@ -67,7 +66,7 @@ public class BookingServiceImp implements BookingService {
             bookingFromBd.setStatus(Status.REJECTED);
         }
         bookingFromBd = bookingRepository.save(bookingFromBd);
-        return bookingMapper.makeToDto(bookingFromBd);
+        return BookingMapper.makeToDto(bookingFromBd);
     }
 
 
@@ -76,7 +75,7 @@ public class BookingServiceImp implements BookingService {
         Booking bookingFromBd = bookingRepository.findById(bookingId).orElseThrow(() ->
                 new BookingNotFoundException("Booking ID " + bookingId + " not found"));
         if (bookingFromBd.getBooker().getId().equals(userId) || bookingFromBd.getItem().getOwner().getId().equals(userId)) {
-            return bookingMapper.makeToDto(bookingFromBd);
+            return BookingMapper.makeToDto(bookingFromBd);
         } else {
             throw new BookingNotFoundException("Booking information is not available to you");
         }
@@ -108,7 +107,7 @@ public class BookingServiceImp implements BookingService {
                 bookingList = bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageable);
         }
         return bookingList.stream()
-                .map(booking -> bookingMapper.makeToDto(booking))
+                .map(booking -> BookingMapper.makeToDto(booking))
                 .collect(Collectors.toList());
     }
 
@@ -138,7 +137,7 @@ public class BookingServiceImp implements BookingService {
                 bookingList = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId, pageable);
         }
         return bookingList.stream()
-                .map(booking -> bookingMapper.makeToDto(booking))
+                .map(booking -> BookingMapper.makeToDto(booking))
                 .collect(Collectors.toList());
     }
 
