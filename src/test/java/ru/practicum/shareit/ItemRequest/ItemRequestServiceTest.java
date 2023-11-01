@@ -44,7 +44,6 @@ public class ItemRequestServiceTest {
     UserRepository userRepository;
     @Mock
     ItemRepository itemRepository;
-
     User owner;
     User requestor;
     Item item;
@@ -113,6 +112,14 @@ public class ItemRequestServiceTest {
                 .thenThrow(RequestNotFoundException.class);
         RequestNotFoundException exception = assertThrows(RequestNotFoundException.class,
                 () -> itemRequestService.getItemRequestById(2L, 1L));
+    }
+
+    @Test
+    void modelTest() {
+        assertThat(itemRequest.getId(), equalTo(1L));
+        assertThat(itemRequest.getDescription(), equalTo("DescriptionRequestTest"));
+        assertThat(itemRequest.getRequestor(), equalTo(new User(2L, "RequestorNameTest", "RequestorTest@yamail.com")));
+        assertThat(itemRequest.getCreated(), equalTo(LocalDateTime.of(2023, 10, 30, 12, 00)));
     }
 
     private User createOwnerTest() {

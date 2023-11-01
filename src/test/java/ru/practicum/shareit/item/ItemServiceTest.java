@@ -9,12 +9,11 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.practicum.shareit.booking.dto.BookingDtoShort;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.exception.ItemNotFoundException;
-import ru.practicum.shareit.exception.NotCorrectDataException;
-import ru.practicum.shareit.exception.UserNotFoundException;
+import ru.practicum.shareit.exception.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBookingsAndComments;
@@ -23,6 +22,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.service.ItemServiceImp;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -52,6 +52,8 @@ public class ItemServiceTest {
     CommentRepository commentRepository;
     @Mock
     BookingRepository bookingRepository;
+    @Mock
+    ItemRequestRepository itemRequestRepository;
 
     Item item;
     ItemDto itemDto;
@@ -96,9 +98,33 @@ public class ItemServiceTest {
     @Test
     void createItem_whenUserNotFound_thenUserNotFoundException() {
         when(userRepository.findById(anyLong()))
-                .thenThrow(UserNotFoundException.class);
+                .thenReturn(Optional.empty());
         UserNotFoundException exception = assertThrows(UserNotFoundException.class,
                 () -> itemService.createItem(itemDto, 1L));
+        assertThat(exception.getMessage(), equalTo("User ID: " + 1L + " not found"));
+    }
+
+    @Test
+    void createItem_whenRequestNotFound_thenRequestNotFoundException() {
+        when(userRepository.findById(anyLong()))
+                .thenReturn(Optional.of(new User(1L, "UserNameTest", "userTest@yamail.com")));
+        when(itemRequestRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+        itemDto.setRequestId(2L);
+        RequestNotFoundException exception = assertThrows(RequestNotFoundException.class,
+                () -> itemService.createItem(itemDto, 1L));
+        assertThat(exception.getMessage(), equalTo("Request ID: " + 1L + " not found"));
+    }
+
+    @Test
+    void getItemById_whenItemId_thenItem() {
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        when(commentRepository.findAllByItemId(anyLong())).thenReturn(new ArrayList<>());
+        when(bookingRepository.findAllByItemId(anyLong())).thenReturn(new ArrayList<>());
+
+        ItemDtoWithBookingsAndComments result = itemService.getItemById(1L, 1L);
+
+        assertThat(result, equalTo(createItemDtoWithBookingsAndComments()));
     }
 
     @Test
@@ -172,6 +198,19 @@ public class ItemServiceTest {
     }
 
     @Test
+    void update_whenItemNotFound_thenItemNotFoundException() {
+        when(itemRepository.existsById(anyLong()))
+                .thenThrow(ItemNotFoundException.class);
+        ItemDto update = new ItemDto();
+        update.setId(1L);
+        update.setDescription("NEW ItemDescriptionTest");
+        update.setRequestId(null);
+
+        ItemNotFoundException exception = assertThrows(ItemNotFoundException.class,
+                () -> itemService.updateItem(1L, update, 2L));
+    }
+
+    @Test
     void deleteItemById_whenItemId_thenDeleteItem() {
         when(itemRepository.existsById(anyLong())).thenReturn(Boolean.TRUE);
         doNothing().when(itemRepository).deleteById(anyLong());
@@ -193,6 +232,12 @@ public class ItemServiceTest {
     }
 
     @Test
+    void searchItem_whenTextIsEmpty_thenEmptyList() {
+        List<ItemDto> items = itemService.searchItem(" ", 0, 10);
+        assertTrue(items.isEmpty());
+    }
+
+    @Test
     void postComment_whenComment_thenSaveComment() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
         when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
@@ -203,7 +248,55 @@ public class ItemServiceTest {
 
         CommentDto result = itemService.postComment(1L, 1L, commentDtoOne);
         assertThat(result.getText(), equalTo("CommentTestOne"));
+    }
 
+    @Test
+    void postComment_whenUnavailableComment_thenIllegalOperationException() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        when(bookingRepository.findByItemIdAndBookerIdAndStatusAndEndBefore(anyLong(), anyLong(), any(Status.class), any(LocalDateTime.class)))
+                .thenThrow(IllegalOperationException.class);
+
+        IllegalOperationException exception = assertThrows(IllegalOperationException.class,
+                () -> itemService.postComment(1L, 1L, commentDtoOne));
+    }
+
+    @Test
+    void updateItemFieldsTest() {
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        Item update = Item.builder()
+                .id(1L)
+                .name("ItemTest")
+                .description("NEW ItemDescriptionTest")
+                .available(true)
+                .owner(new User(1L, "UserNameTest", "userTest@yamail.com"))
+                .request(null)
+                .build();
+        Item result = itemService.updateItemFields(update);
+        assertThat(result.getId(), equalTo(1L));
+        assertThat(result.getName(), equalTo("ItemTest"));
+        assertThat(result.getDescription(), equalTo("NEW ItemDescriptionTest"));
+        assertThat(result.getAvailable(), equalTo(true));
+        assertThat(result.getOwner(), equalTo(new User(1L, "UserNameTest", "userTest@yamail.com")));
+        assertThat(result.getRequest(), equalTo(null));
+    }
+
+    @Test
+    void getLastBookingTest() {
+        List<Booking> bookingList = List.of(booking);
+        BookingDtoShort result = itemService.getLastBooking(bookingList, 1L);
+        assertThat(result, equalTo(null));
+    }
+
+    @Test
+    void getNextBookingTest() {
+        List<Booking> bookingList = List.of(booking);
+        BookingDtoShort result = itemService.getNextBooking(bookingList, 1L);
+        assertThat(result, equalTo(new BookingDtoShort(
+                1L, 2L,
+                LocalDateTime.of(2023, 11, 15, 12, 00),
+                LocalDateTime.of(2023, 12, 15, 12, 00),
+                Status.WAITING)));
     }
 
     private User createUserTest() {

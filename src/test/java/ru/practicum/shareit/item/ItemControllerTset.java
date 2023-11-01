@@ -98,6 +98,15 @@ public class ItemControllerTset {
     }
 
     @Test
+    public void getAllItemsOfUserPaginationParamException() throws Exception {
+        mvc.perform(get("/items")
+                        .header("X-Sharer-User-Id", 1)
+                        .param("from", "-1")
+                        .param("size", "10"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     public void updateItem() throws Exception {
         when(itemService.updateItem(anyLong(), any(), anyLong()))
                 .thenReturn(itemDto);
