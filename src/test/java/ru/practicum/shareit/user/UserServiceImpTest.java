@@ -16,6 +16,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserServiceImp;
 
 import javax.validation.ConstraintViolationException;
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -62,6 +63,29 @@ public class UserServiceImpTest {
     }
 
     @Test
+    void getAllUsersTest() {
+        when(userRepository.findAll()).thenReturn(List.of(user));
+        List<UserDto> returnResult = userService.getAllUsers();
+        assertThat(returnResult.get(0), equalTo(UserMapper.makeUserDto(user)));
+    }
+
+    @Test
+    void getUserByIdTest() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        UserDto returnResult = userService.getUserById(1L);
+        assertThat(returnResult, equalTo(UserMapper.makeUserDto(user)));
+    }
+
+    @Test
+    void getUserByIdTest_whenUserNotFound_thenUserNotFoundException() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class,
+                () -> userService.getUserById(1L));
+        assertThat(exception.getMessage(), equalTo("User ID: " + 1L + " not found"));
+    }
+
+
+    @Test
     void update_whenUpdateUser_thenSaveUser() {
         UserDto updatedUser = createUpdatedUserDtoTest();
         Mockito.when(userRepository.findById(Mockito.anyLong()))
@@ -77,9 +101,42 @@ public class UserServiceImpTest {
     @Test
     void update_whenUserNotFound_thenNotFoundException() {
         Mockito.when(userRepository.findById(Mockito.anyLong()))
-                .thenThrow(UserNotFoundException.class);
+                .thenReturn(Optional.empty());
         UserNotFoundException exception = assertThrows(UserNotFoundException.class,
                 () -> userService.update(1L, UserMapper.makeUserDto(user)));
+        assertThat(exception.getMessage(), equalTo("User ID: " + 1L + " not found"));
+    }
+
+    @Test
+    void update_whenUpdateEmail_thenSaveUser() {
+        UserDto updatedUser = new UserDto();
+        updatedUser.setId(1L);
+        updatedUser.setEmail("UpdatedUserTest@yamail.com");
+
+        Mockito.when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(createUserTest()));
+        Mockito.when(userRepository.save(Mockito.any(User.class)))
+                .thenReturn(new User(1L, "UserNameTest", "UpdatedUserTest@yamail.com"));
+
+        UserDto returnResult = userService.update(1L, updatedUser);
+        assertThat(returnResult, equalTo(new UserDto(1L, "UserNameTest", "UpdatedUserTest@yamail.com")));
+        verify(userRepository).save(new User(1L, "UserNameTest", "UpdatedUserTest@yamail.com"));
+    }
+
+    @Test
+    void update_whenUpdateName_thenSaveUser() {
+        UserDto updatedUser = new UserDto();
+        updatedUser.setId(1L);
+        updatedUser.setName("UpdatedUserNameTest");
+
+        Mockito.when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(createUserTest()));
+        Mockito.when(userRepository.save(Mockito.any(User.class)))
+                .thenReturn(new User(1L, "UpdatedUserNameTest", "userTest@yamail.com"));
+
+        UserDto returnResult = userService.update(1L, updatedUser);
+        assertThat(returnResult, equalTo(new UserDto(1L, "UpdatedUserNameTest", "userTest@yamail.com")));
+        verify(userRepository).save(new User(1L, "UpdatedUserNameTest", "userTest@yamail.com"));
     }
 
     @Test
@@ -88,6 +145,15 @@ public class UserServiceImpTest {
         doNothing().when(userRepository).deleteById(anyLong());
         userService.deleteUserById(user.getId());
         verify(userRepository).deleteById(user.getId());
+    }
+
+    @Test
+    void deleteUserById_whenUserNotFound_thenUserNotFoundException() {
+        when(userRepository.existsById(anyLong())).thenReturn(Boolean.FALSE);
+
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class,
+                () -> userService.deleteUserById(1L));
+        assertThat(exception.getMessage(), equalTo("User ID: " + 1L + " not found"));
     }
 
     @Test

@@ -53,15 +53,12 @@ public class ItemRequestServiceImp implements ItemRequestService {
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User ID: " + userId + " not found");
         }
-
-
         List<ItemRequest> itemRequestList = itemRequestRepository.findAllByRequestorIdOrderByCreatedAsc(userId);
       /*  if (itemRequestList.isEmpty()) {
             throw new RequestNotFoundException("User ID:" + userId + "has no requests");
         }*/
         List<Long> listRequestId = itemRequestList.stream()
                 .map(ItemRequest::getId).collect(Collectors.toList());
-
         List<Item> itemsToRequest = itemRepository.findAllByRequestIdIn(listRequestId);
         List<ItemDto> itemDtoToRequest;
         if (itemsToRequest.isEmpty()) {

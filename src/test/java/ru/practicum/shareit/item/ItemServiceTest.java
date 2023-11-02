@@ -17,11 +17,13 @@ import ru.practicum.shareit.exception.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBookingsAndComments;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.service.ItemServiceImp;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -62,6 +64,7 @@ public class ItemServiceTest {
     CommentDto commentDtoOne;
     Booking booking;
     ItemDtoWithBookingsAndComments itemDtoWithBAndC;
+    ItemRequest itemRequest;
 
     @BeforeEach
     void setUp() {
@@ -72,7 +75,7 @@ public class ItemServiceTest {
         commentDtoOne = createCommentDtoOne();
         booking = createBooking();
         itemDtoWithBAndC = createItemDtoWithBookingsAndComments();
-
+        itemRequest = createItemRequestTest();
     }
 
     @Test
@@ -117,6 +120,29 @@ public class ItemServiceTest {
     }
 
     @Test
+    void createItem_whenRequestNotNull_thenSaveItem() {
+        itemDto.setRequestId(1L);
+        when(userRepository.findById(anyLong()))
+                .thenReturn(Optional.of(new User(1L, "UserNameTest", "userTest@yamail.com")));
+        when(itemRequestRepository.findById(anyLong()))
+                .thenReturn(Optional.of(itemRequest));
+        when(itemRepository.save(any(Item.class)))
+                .thenReturn(new Item(1L, "ItemTest", "ItemDescriptionTest", true,
+                        new User(1L, "UserNameTest", "userTest@yamail.com"), itemRequest));
+        Item itemFromDto = Item.builder()
+                .name("ItemTest")
+                .description("ItemDescriptionTest")
+                .available(true)
+                .owner(new User(1L, "UserNameTest", "userTest@yamail.com"))
+                .request(itemRequest)
+                .build();
+        ItemDto savedItem = itemService.createItem(itemDto, 1L);
+        assertThat(savedItem,
+                equalTo(new ItemDto(1L, "ItemTest", "ItemDescriptionTest", true, 1L)));
+        verify(itemRepository).save(itemFromDto);
+    }
+
+    @Test
     void getItemById_whenItemId_thenItem() {
         when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
         when(commentRepository.findAllByItemId(anyLong())).thenReturn(new ArrayList<>());
@@ -132,10 +158,21 @@ public class ItemServiceTest {
         when(itemRepository.findById(anyLong())).thenReturn(Optional.empty());
         ItemNotFoundException exception = assertThrows(ItemNotFoundException.class, ()
                 -> itemService.getItemById(1L, 1L));
+        assertThat(exception.getMessage(), equalTo("Item ID: " + 1L + " not found"));
     }
 
     @Test
-    public void getAllByOwner_whenUserId_thenItemWithoutBookingsAndComments() {
+    void getItemById_whenNotOwner_thenItem() {
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        when(commentRepository.findAllByItemId(anyLong())).thenReturn(new ArrayList<>());
+        when(bookingRepository.findAllByItemId(anyLong())).thenReturn(new ArrayList<>());
+
+        ItemDtoWithBookingsAndComments result = itemService.getItemById(1L, 2L);
+        assertThat(result, equalTo(createItemDtoWithBookingsAndComments()));
+    }
+
+    @Test
+    public void getAllItemsOfUser_whenCommentsListWithComments_thenItemWithoutBookingsAndComments() {
         List<Item> items = new ArrayList<>();
         items.add(new Item(1L, "ItemTest", "ItemDescriptionTest", true,
                 new User(1L, "UserNameTest", "userTest@yamail.com"), null));
@@ -146,6 +183,20 @@ public class ItemServiceTest {
         List<ItemDtoWithBookingsAndComments> result = itemService.getAllItemsOfUser(1L, 0, 10);
         assertFalse(result.isEmpty());
         assertEquals(result.get(0).getId(), 1L);
+    }
+
+    @Test
+    public void getAllItemsOfUser_whenCommentsListIsEmpty_thenItemWithoutBookingsAndComments() {
+        List<Item> items = new ArrayList<>();
+        items.add(new Item(1L, "ItemTest", "ItemDescriptionTest", true,
+                new User(1L, "UserNameTest", "userTest@yamail.com"), null));
+        doReturn(items).when(itemRepository).findAllByOwnerId(anyLong(), any(Pageable.class));
+        doReturn(new ArrayList<>()).when(bookingRepository).findAllByItemIdIn(Mockito.anyList());
+        doReturn(new ArrayList<>()).when(commentRepository).findAllByItemIdIn(Mockito.anyList());
+
+        List<ItemDtoWithBookingsAndComments> result = itemService.getAllItemsOfUser(1L, 0, 10);
+        assertTrue(result.get(0).getComments().isEmpty());
+
     }
 
     @Test
@@ -200,7 +251,7 @@ public class ItemServiceTest {
     @Test
     void update_whenItemNotFound_thenItemNotFoundException() {
         when(itemRepository.existsById(anyLong()))
-                .thenThrow(ItemNotFoundException.class);
+                .thenReturn(false);
         ItemDto update = new ItemDto();
         update.setId(1L);
         update.setDescription("NEW ItemDescriptionTest");
@@ -208,6 +259,7 @@ public class ItemServiceTest {
 
         ItemNotFoundException exception = assertThrows(ItemNotFoundException.class,
                 () -> itemService.updateItem(1L, update, 2L));
+        assertThat(exception.getMessage(), equalTo("Item ID: " + 1L + " not found"));
     }
 
     @Test
@@ -220,6 +272,16 @@ public class ItemServiceTest {
         verify(itemRepository).existsById(1L);
         verify(itemRepository).deleteById(1L);
         verifyNoMoreInteractions(itemRepository);
+    }
+
+    @Test
+    void deleteItemById_whenItemNotFound_thenItemNotFoundException() {
+        when(itemRepository.existsById(anyLong())).thenReturn(Boolean.FALSE);
+
+        ItemNotFoundException exception = assertThrows(ItemNotFoundException.class,
+                () -> itemService.deleteItemById(1L, 1L));
+        assertThat(exception.getMessage(), equalTo("Item ID: " + 1L + " not found"));
+
     }
 
     @Test
@@ -255,10 +317,11 @@ public class ItemServiceTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
         when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
         when(bookingRepository.findByItemIdAndBookerIdAndStatusAndEndBefore(anyLong(), anyLong(), any(Status.class), any(LocalDateTime.class)))
-                .thenThrow(IllegalOperationException.class);
+                .thenReturn(new ArrayList<>());
 
         IllegalOperationException exception = assertThrows(IllegalOperationException.class,
                 () -> itemService.postComment(1L, 1L, commentDtoOne));
+        assertThat(exception.getMessage(), equalTo("Only user who has completed booking can leave a comment"));
     }
 
     @Test
@@ -282,10 +345,42 @@ public class ItemServiceTest {
     }
 
     @Test
+    void updateItemFieldsTestDescription() {
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        Item update = Item.builder()
+                .id(1L)
+                .name("New ItemTest")
+                .available(true)
+                .owner(new User(1L, "UserNameTest", "userTest@yamail.com"))
+                .request(null)
+                .build();
+        Item result = itemService.updateItemFields(update);
+        assertThat(result.getId(), equalTo(1L));
+        assertThat(result.getName(), equalTo("New ItemTest"));
+        assertThat(result.getDescription(), equalTo("ItemDescriptionTest"));
+        assertThat(result.getAvailable(), equalTo(true));
+        assertThat(result.getOwner(), equalTo(new User(1L, "UserNameTest", "userTest@yamail.com")));
+        assertThat(result.getRequest(), equalTo(null));
+    }
+
+    @Test
     void getLastBookingTest() {
         List<Booking> bookingList = List.of(booking);
         BookingDtoShort result = itemService.getLastBooking(bookingList, 1L);
         assertThat(result, equalTo(null));
+    }
+
+    @Test
+    void getLastBookingTestExist() {
+        booking.setStart(LocalDateTime.of(2023, 10, 10, 12, 00));
+        booking.setEnd(LocalDateTime.of(2023, 10, 15, 12, 00));
+        List<Booking> bookingList = List.of(booking);
+        BookingDtoShort result = itemService.getLastBooking(bookingList, 1L);
+        assertThat(result, equalTo(new BookingDtoShort(
+                1L, 2L,
+                LocalDateTime.of(2023, 10, 10, 12, 00),
+                LocalDateTime.of(2023, 10, 15, 12, 00),
+                Status.WAITING)));
     }
 
     @Test
@@ -297,6 +392,43 @@ public class ItemServiceTest {
                 LocalDateTime.of(2023, 11, 15, 12, 00),
                 LocalDateTime.of(2023, 12, 15, 12, 00),
                 Status.WAITING)));
+    }
+
+    @Test
+    void getNextBookingTestNotExist() {
+        booking.setStart(LocalDateTime.of(2023, 10, 10, 12, 00));
+        booking.setEnd(LocalDateTime.of(2023, 10, 15, 12, 00));
+
+        List<Booking> bookingList = List.of(booking);
+        BookingDtoShort result = itemService.getNextBooking(bookingList, 1L);
+        assertThat(result, equalTo(null));
+    }
+
+    @Test
+    void makeToItemDtoWithBookingsAndCommentsTest_whenIdNull() {
+        item.setId(null);
+        ItemDtoWithBookingsAndComments result = ItemMapper.makeToItemDtoWithBookingsAndComments(item, new ArrayList<>(), null, null);
+        assertThat(result.getId(), equalTo(null));
+    }
+
+    @Test
+    void makeToItemDtoWithBookingsAndCommentsTestLastNextBooking() {
+        BookingDtoShort lastBooking = new BookingDtoShort();
+        lastBooking.setId(1L);
+        lastBooking.setBookerId(1L);
+        lastBooking.setStart(LocalDateTime.of(2023, 10, 1, 12, 00));
+        lastBooking.setEnd(LocalDateTime.of(2023, 12, 31, 12, 00));
+        lastBooking.setStatus(Status.WAITING);
+        BookingDtoShort nextBooking = new BookingDtoShort();
+        nextBooking.setId(2L);
+        nextBooking.setBookerId(2L);
+        nextBooking.setStart(LocalDateTime.of(2023, 10, 1, 12, 00));
+        nextBooking.setEnd(LocalDateTime.of(2023, 12, 31, 12, 00));
+        nextBooking.setStatus(Status.WAITING);
+
+        ItemDtoWithBookingsAndComments result = ItemMapper.makeToItemDtoWithBookingsAndComments(item, new ArrayList<>(), lastBooking, nextBooking);
+        assertThat(result.getLastBooking().getId(), equalTo(1L));
+        assertThat(result.getNextBooking().getId(), equalTo(2L));
     }
 
     private User createUserTest() {
@@ -371,7 +503,14 @@ public class ItemServiceTest {
         return itemDtoWithBAndC;
     }
 
-
+    private ItemRequest createItemRequestTest() {
+        ItemRequest itemRequest = new ItemRequest();
+        itemRequest.setId(1L);
+        itemRequest.setDescription("DescriptionRequestTest");
+        itemRequest.setRequestor(new User(2L, "RequestorNameTest", "RequestorTest@yamail.com"));
+        itemRequest.setCreated(LocalDateTime.of(2023, 10, 30, 12, 00));
+        return itemRequest;
+    }
 }
 
 

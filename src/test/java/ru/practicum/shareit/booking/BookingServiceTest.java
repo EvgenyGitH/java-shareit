@@ -165,6 +165,34 @@ public class BookingServiceTest {
     }
 
     @Test
+    void getBookingById_whenBookingNotFound_thenBookingNotFoundException() {
+        when(bookingRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+        BookingNotFoundException exception = assertThrows(BookingNotFoundException.class,
+                () -> bookingService.getBookingById(1L, 1L));
+        assertThat(exception.getMessage(), equalTo("Booking ID " + 1L + " not found"));
+    }
+
+    @Test
+    void getBookingById_whenBookerEqualUser_thenBookingNotFoundException() {
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
+        BookingNotFoundException exception = assertThrows(BookingNotFoundException.class,
+                () -> bookingService.getBookingById(1L, 3L));
+        assertThat(exception.getMessage(), equalTo("Booking information is not available to you"));
+    }
+
+    @Test
+    void getAllBookingsByUserId_whenStateALL_thenBookingDtoList() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(booker));
+        when(bookingRepository.findAllByBookerIdOrderByStartDesc(anyLong(), any(Pageable.class)))
+                .thenReturn(List.of(booking));
+
+        List<BookingDto> bookingList = bookingService.getAllBookingsByUserId(2L, "ALL", 0, 10);
+        assertFalse(bookingList.isEmpty());
+        assertThat(bookingList.get(0).getId(), equalTo(1L));
+    }
+
+    @Test
     void getAllBookingsByUserId_whenStateCURRENT_thenBookingDtoList() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(booker));
         when(bookingRepository.findAllCurrentBookingsByBookerId(anyLong(), any(LocalDateTime.class), any(LocalDateTime.class), any(Pageable.class)))
@@ -220,6 +248,17 @@ public class BookingServiceTest {
                 .thenReturn(List.of(booking));
 
         List<BookingDto> bookingList = bookingService.getAllBookingsByUserId(2L, "REJECTED", 0, 10);
+        assertFalse(bookingList.isEmpty());
+        assertThat(bookingList.get(0).getId(), equalTo(1L));
+    }
+
+    @Test
+    void getAllBookingsByOwnerId_whenStateALL_thenBookingDtoList() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
+        when(bookingRepository.findAllByItemOwnerIdOrderByStartDesc(anyLong(), any(Pageable.class)))
+                .thenReturn(List.of(booking));
+
+        List<BookingDto> bookingList = bookingService.getAllBookingsByOwnerId(1L, "ALL", 0, 10);
         assertFalse(bookingList.isEmpty());
         assertThat(bookingList.get(0).getId(), equalTo(1L));
     }

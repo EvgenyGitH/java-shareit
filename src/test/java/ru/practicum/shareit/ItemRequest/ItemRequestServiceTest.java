@@ -22,14 +22,14 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
@@ -71,9 +71,10 @@ public class ItemRequestServiceTest {
     @Test
     void createPost_whenUserNotFound_thenUserNotFoundException() {
         when(userRepository.findById(anyLong()))
-                .thenThrow(UserNotFoundException.class);
+                .thenReturn(Optional.empty());
         UserNotFoundException exception = assertThrows(UserNotFoundException.class,
                 () -> itemRequestService.createPost(itemRequestDto, 2L));
+        assertThat(exception.getMessage(), equalTo("User ID: " + 2L + " not found"));
     }
 
     @Test
@@ -87,6 +88,24 @@ public class ItemRequestServiceTest {
     }
 
     @Test
+    void itemRequestsByRequestor_whenItemListIsEmpty_thenListItemRequestsByRequestor() {
+        when(userRepository.existsById(anyLong())).thenReturn(Boolean.TRUE);
+        when(itemRequestRepository.findAllByRequestorIdOrderByCreatedAsc(anyLong())).thenReturn(List.of(itemRequest));
+        when(itemRepository.findAllByRequestIdIn(anyList())).thenReturn(new ArrayList<>());
+        List<ItemRequestDtoWithItem> itemRequestList = itemRequestService.itemRequestsByRequestor(2L);
+        assertFalse(itemRequestList.isEmpty());
+        assertTrue(itemRequestList.get(0).getItems().isEmpty());
+    }
+
+    @Test
+    void itemRequestsByRequestor_whenUserNotFound_thenUserNotFoundException() {
+        when(userRepository.existsById(anyLong())).thenReturn(Boolean.FALSE);
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class,
+                () -> itemRequestService.itemRequestsByRequestor(1L));
+        assertThat(exception.getMessage(), equalTo("User ID: " + 1L + " not found"));
+    }
+
+    @Test
     void itemRequestsAll_whenUserId_thenListItemRequests() {
         when(userRepository.existsById(anyLong())).thenReturn(Boolean.TRUE);
         when(itemRequestRepository.findAllByRequestorIdNot(anyLong(), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(itemRequest)));
@@ -94,6 +113,14 @@ public class ItemRequestServiceTest {
         List<ItemRequestDtoWithItem> itemRequestList = itemRequestService.itemRequestsAll(1L, 0, 10);
         assertFalse(itemRequestList.isEmpty());
         assertThat(itemRequestList.get(0).getId(), equalTo(1L));
+    }
+
+    @Test
+    void itemRequestsAll_whenUserNotFound_thenUserNotFoundException() {
+        when(userRepository.existsById(anyLong())).thenReturn(Boolean.FALSE);
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class,
+                () -> itemRequestService.itemRequestsAll(1L, 0, 10));
+        assertThat(exception.getMessage(), equalTo("User ID: " + 1L + " not found"));
     }
 
     @Test
@@ -106,12 +133,30 @@ public class ItemRequestServiceTest {
     }
 
     @Test
-    void getItemRequestById_whenItemNotAvailable_thenBookingNotAvailableException() {
+    void getItemRequestById_whenRequestNotFound_thenRequestNotFoundException() {
         when(userRepository.existsById(anyLong())).thenReturn(Boolean.TRUE);
         when(itemRequestRepository.findById(anyLong()))
-                .thenThrow(RequestNotFoundException.class);
+                .thenReturn(Optional.empty());
         RequestNotFoundException exception = assertThrows(RequestNotFoundException.class,
-                () -> itemRequestService.getItemRequestById(2L, 1L));
+                () -> itemRequestService.getItemRequestById(1L, 1L));
+        assertThat(exception.getMessage(), equalTo("User ID:" + 1L + "has no requests"));
+    }
+
+    @Test
+    void getItemRequestById_whenUserNotFound_thenUserNotFoundException() {
+        when(userRepository.existsById(anyLong())).thenReturn(Boolean.FALSE);
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class,
+                () -> itemRequestService.getItemRequestById(1L, 1L));
+        assertThat(exception.getMessage(), equalTo("User ID: " + 1L + " not found"));
+    }
+
+    @Test
+    void getItemRequestById_whenRequestListNotEmpty_thenItemRequest() {
+        when(userRepository.existsById(anyLong())).thenReturn(Boolean.TRUE);
+        when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.of(itemRequest));
+        when(itemRepository.findAllByRequestId(anyLong())).thenReturn(List.of(item));
+        ItemRequestDtoWithItem result = itemRequestService.getItemRequestById(2L, 1L);
+        assertThat(result.getItems().size(), equalTo(1));
     }
 
     @Test

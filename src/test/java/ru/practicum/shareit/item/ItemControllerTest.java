@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ItemController.class)
-public class ItemControllerTset {
+public class ItemControllerTest {
     @Autowired
     MockMvc mvc;
     @Autowired
@@ -98,12 +98,23 @@ public class ItemControllerTset {
     }
 
     @Test
-    public void getAllItemsOfUserPaginationParamException() throws Exception {
+    public void getAllItemsOfUserFromPaginationParamException() throws Exception {
         mvc.perform(get("/items")
                         .header("X-Sharer-User-Id", 1)
                         .param("from", "-1")
                         .param("size", "10"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("Should be: From >= 0 and size > 0")));
+    }
+
+    @Test
+    public void getAllItemsOfUserSizePaginationParamException() throws Exception {
+        mvc.perform(get("/items")
+                        .header("X-Sharer-User-Id", 1)
+                        .param("from", "0")
+                        .param("size", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("Should be: From >= 0 and size > 0")));
     }
 
     @Test
