@@ -2,10 +2,10 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.exception.PaginationParamException;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -16,6 +16,7 @@ import java.util.List;
 @RequestMapping(path = "/bookings")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class BookingController {
     private final BookingService bookingService;
 
@@ -46,9 +47,6 @@ public class BookingController {
                                                    @RequestParam(defaultValue = "ALL") String state,
                                                    @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
                                                    @RequestParam(defaultValue = "10") @Positive Integer size) {
-        if (from < 0 || size <= 0) {
-            throw new PaginationParamException("Should be: From >= 0 and size > 0");
-        }
         log.info("Get all bookings by User ID {}, state: {}", userId, state);
         return bookingService.getAllBookingsByUserId(userId, state, from, size);
     }
@@ -58,12 +56,7 @@ public class BookingController {
                                                     @RequestParam(defaultValue = "ALL") String state,
                                                     @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
                                                     @RequestParam(defaultValue = "10") @Positive Integer size) {
-        if (from < 0 || size <= 0) {
-            throw new PaginationParamException("Should be: From >= 0 and size > 0");
-        }
         log.info("Get all bookings by Owner ID {}, state: {}", userId, state);
         return bookingService.getAllBookingsByOwnerId(userId, state, from, size);
     }
-
-
 }

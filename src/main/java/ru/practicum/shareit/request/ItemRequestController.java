@@ -1,8 +1,8 @@
 package ru.practicum.shareit.request;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.exception.PaginationParamException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoWithItem;
 import ru.practicum.shareit.request.service.ItemRequestService;
@@ -16,6 +16,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping(path = "/requests")
+@Validated
 public class ItemRequestController {
 
     private final ItemRequestService itemRequestService;
@@ -42,9 +43,6 @@ public class ItemRequestController {
     public List<ItemRequestDtoWithItem> itemRequestsAll(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                         @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
                                                         @RequestParam(defaultValue = "10") @Positive Integer size) {
-        if (from < 0 || size <= 0) {
-            throw new PaginationParamException("Should be: From >= 0 and size > 0");
-        }
         log.info("Get all Item requests");
         return itemRequestService.itemRequestsAll(userId, from, size);
     }
