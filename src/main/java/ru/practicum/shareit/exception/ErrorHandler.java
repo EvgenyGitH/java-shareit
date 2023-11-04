@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.validation.ConstraintViolation;
+import java.util.stream.Collectors;
+
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
@@ -29,6 +32,13 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handlerBookingNotFoundException(BookingNotFoundException exception) {
+        log.error(exception.getMessage());
+        return new ErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handlerRequestNotFoundException(RequestNotFoundException exception) {
         log.error(exception.getMessage());
         return new ErrorResponse(exception.getMessage());
     }
@@ -55,13 +65,6 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handlerItemStatusException(ItemStatusException exception) {
-        log.error(exception.getMessage());
-        return new ErrorResponse(exception.getMessage());
-    }
-
-    @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handlerDuplicateException(DuplicateException exception) {
         log.error(exception.getMessage());
@@ -80,6 +83,16 @@ public class ErrorHandler {
     public ErrorResponse handleConstraintViolationException(ConstraintViolationException exception) {
         log.info("Validation error: {}", exception.getMessage());
         return new ErrorResponse("Email already exists");
+    }
+
+    @ExceptionHandler(javax.validation.ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleJavaxConstraintViolationException(javax.validation.ConstraintViolationException exception) {
+        var messages = exception.getConstraintViolations().stream().map(ConstraintViolation::getMessage).collect(Collectors.toSet());
+        for (var message : messages) {
+            log.info("Validation error: {}", message);
+        }
+        return new ErrorResponse("Should be: From >= 0 and size > 0");
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
