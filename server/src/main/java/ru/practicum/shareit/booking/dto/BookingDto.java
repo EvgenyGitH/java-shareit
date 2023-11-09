@@ -9,8 +9,6 @@ import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
-import javax.validation.constraints.FutureOrPresent;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 import static com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY;
@@ -26,11 +24,7 @@ public class BookingDto {
     Long itemId;
     ItemDto item;
     UserDto booker;
-    @FutureOrPresent
-    @NotNull
     LocalDateTime start;
-    @FutureOrPresent
-    @NotNull
     LocalDateTime end;
     Status status;  // WAITING - APPROVED - REJECTED - CANCELED
 }

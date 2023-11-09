@@ -9,9 +9,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import javax.validation.ConstraintViolation;
-import java.util.stream.Collectors;
-
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
@@ -85,7 +82,7 @@ public class ErrorHandler {
         return new ErrorResponse("Email already exists");
     }
 
-    @ExceptionHandler(javax.validation.ConstraintViolationException.class)
+/*    @ExceptionHandler(javax.validation.ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleJavaxConstraintViolationException(javax.validation.ConstraintViolationException exception) {
         var messages = exception.getConstraintViolations().stream().map(ConstraintViolation::getMessage).collect(Collectors.toSet());
@@ -93,7 +90,7 @@ public class ErrorHandler {
             log.info("Validation error: {}", message);
         }
         return new ErrorResponse("Should be: From >= 0 and size > 0");
-    }
+    }*/
 
     @ExceptionHandler(MissingRequestHeaderException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

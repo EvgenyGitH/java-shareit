@@ -36,16 +36,14 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}")
-    public UserDto update(//@RequestHeader("X-ShareIt-User-Id") Long id,
-                          @PathVariable Long userId,
+    public UserDto update(@PathVariable Long userId,
                           @RequestBody UserDto userDto) {
         log.info("update User");
         return userService.update(userId, userDto);
     }
 
     @DeleteMapping("/{userId}")
-    public void deleteUserById(//@RequestHeader("X-ShareIt-User-Id") Long id,
-                               @PathVariable Long userId) {
+    public void deleteUserById(@PathVariable Long userId) {
         log.info("Delete User by id {}", userId);
         userService.deleteUserById(userId);
     }
