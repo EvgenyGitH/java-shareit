@@ -51,7 +51,7 @@ public class UserServiceImpTest {
         assertThat(savedUser, equalTo(userDto));
         verify(userRepository).save(userToSave);
     }
-    
+
     @Test
     void getAllUsersTest() {
         when(userRepository.findAll()).thenReturn(List.of(user));
