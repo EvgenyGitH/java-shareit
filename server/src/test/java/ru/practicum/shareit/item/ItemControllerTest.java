@@ -98,26 +98,6 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void getAllItemsOfUserFromPaginationParamException() throws Exception {
-        mvc.perform(get("/items")
-                        .header("X-Sharer-User-Id", 1)
-                        .param("from", "-1")
-                        .param("size", "10"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Should be: From >= 0 and size > 0")));
-    }
-
-    @Test
-    public void getAllItemsOfUserSizePaginationParamException() throws Exception {
-        mvc.perform(get("/items")
-                        .header("X-Sharer-User-Id", 1)
-                        .param("from", "0")
-                        .param("size", "-1"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Should be: From >= 0 and size > 0")));
-    }
-
-    @Test
     public void updateItem() throws Exception {
         when(itemService.updateItem(anyLong(), any(), anyLong()))
                 .thenReturn(itemDto);

@@ -2,27 +2,22 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
 @RequestMapping(path = "/bookings")
 @RequiredArgsConstructor
 @Slf4j
-@Validated
 public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
     public BookingDto createBooking(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                    @Valid @RequestBody BookingDto bookingDto) {
+                                    @RequestBody BookingDto bookingDto) {
         log.info("Create Booking");
         return bookingService.createBooking(bookingDto, userId);
     }
@@ -45,8 +40,8 @@ public class BookingController {
     @GetMapping
     public List<BookingDto> getAllBookingsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                    @RequestParam(defaultValue = "ALL") String state,
-                                                   @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
-                                                   @RequestParam(defaultValue = "10") @Positive Integer size) {
+                                                   @RequestParam(defaultValue = "0") Integer from,
+                                                   @RequestParam(defaultValue = "10") Integer size) {
         log.info("Get all bookings by User ID {}, state: {}", userId, state);
         return bookingService.getAllBookingsByUserId(userId, state, from, size);
     }
@@ -54,8 +49,8 @@ public class BookingController {
     @GetMapping("/owner")
     public List<BookingDto> getAllBookingsByOwnerId(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                     @RequestParam(defaultValue = "ALL") String state,
-                                                    @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
-                                                    @RequestParam(defaultValue = "10") @Positive Integer size) {
+                                                    @RequestParam(defaultValue = "0") Integer from,
+                                                    @RequestParam(defaultValue = "10") Integer size) {
         log.info("Get all bookings by Owner ID {}, state: {}", userId, state);
         return bookingService.getAllBookingsByOwnerId(userId, state, from, size);
     }

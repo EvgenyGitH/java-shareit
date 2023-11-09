@@ -131,32 +131,6 @@ public class BookingContollerTest {
     }
 
     @Test
-    public void getAllBookingsByUserIdFromPaginationParamException() throws Exception {
-        mvc.perform(get("/bookings/")
-                        .header("X-Sharer-User-Id", 1)
-                        .param("from", "-1")
-                        .param("size", "10")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Should be: From >= 0 and size > 0")));
-    }
-
-    @Test
-    public void getAllBookingsByUserIdSizePaginationParamException() throws Exception {
-        mvc.perform(get("/bookings/")
-                        .header("X-Sharer-User-Id", 1)
-                        .param("from", "0")
-                        .param("size", "-1")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Should be: From >= 0 and size > 0")));
-    }
-
-    @Test
     public void getAllBookingsByOwnerId() throws Exception {
         when(bookingService.getAllBookingsByOwnerId(anyLong(), anyString(), anyInt(), anyInt()))
                 .thenReturn(List.of(bookingDto));
@@ -178,32 +152,6 @@ public class BookingContollerTest {
                 .andExpect(jsonPath("$[0].status", is(bookingDto.getStatus().toString())));
         verify(bookingService).getAllBookingsByOwnerId(1L, "ALL", 0, 10);
 
-    }
-
-    @Test
-    public void getAllBookingsByOwnerIdFromPaginationParamException() throws Exception {
-        mvc.perform(get("/bookings/owner")
-                        .header("X-Sharer-User-Id", 1)
-                        .param("from", "-1")
-                        .param("size", "10")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Should be: From >= 0 and size > 0")));
-    }
-
-    @Test
-    public void getAllBookingsByOwnerIdSizePaginationParamException() throws Exception {
-        mvc.perform(get("/bookings/owner")
-                        .header("X-Sharer-User-Id", 1)
-                        .param("from", "0")
-                        .param("size", "-1")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Should be: From >= 0 and size > 0")));
     }
 
     private BookingDto createBookingDtoTest() {
