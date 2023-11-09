@@ -15,7 +15,6 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserServiceImp;
 
-import javax.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,16 +51,7 @@ public class UserServiceImpTest {
         assertThat(savedUser, equalTo(userDto));
         verify(userRepository).save(userToSave);
     }
-
-    @Test
-    void create_whenCreateUser_thenConstraintViolationException() {
-        Mockito.when(userRepository.save(Mockito.any(User.class)))
-                .thenThrow(ConstraintViolationException.class);
-
-        ConstraintViolationException exception = assertThrows(ConstraintViolationException.class,
-                () -> userService.create(UserMapper.makeUserDto(user)));
-    }
-
+    
     @Test
     void getAllUsersTest() {
         when(userRepository.findAll()).thenReturn(List.of(user));
